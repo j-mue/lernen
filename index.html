@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Wörtertrainer – Englisch & Französisch</title>
+<title>Wörtertrainer – Üben für die Schule</title>
 <meta name="theme-color" content="#2E6FE0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -45,9 +45,9 @@
   .stars .ico{color:var(--yellow);}
 
   .switcher{display:flex; background:var(--card); border-radius:999px; padding:4px; box-shadow:var(--shadow); gap:4px;}
-  .switcher button{flex:1; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700;
-    font-size:1rem; padding:10px; border-radius:999px; cursor:pointer; color:var(--ink-soft);
-    transition:background .12s ease, color .12s ease;}
+  .switcher button{flex:1; min-width:0; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700;
+    font-size:.92rem; padding:10px 4px; border-radius:999px; cursor:pointer; color:var(--ink-soft);
+    white-space:nowrap; transition:background .12s ease, color .12s ease;}
   .switcher button.active{background:var(--blue); color:#fff;}
   .switcher button:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
 
@@ -183,9 +183,10 @@
       <button id="tabEn" role="tab" aria-selected="true" class="active">🚑 English</button>
       <button id="tabFr" role="tab" aria-selected="false">🎒 Français</button>
       <button id="tabMa" role="tab" aria-selected="false">🍰 Brüche</button>
+      <button id="tabSc" role="tab" aria-selected="false">♟️ Schach</button>
     </div>
     <div class="kits" aria-label="Deine drei Koffer">
-      <div class="kit k1"><span class="box-ico">📦</span><div class="num" id="cntNew">0</div><div class="lbl">Neue Wörter</div></div>
+      <div class="kit k1"><span class="box-ico">📦</span><div class="num" id="cntNew">0</div><div class="lbl" id="lblNew">Neue Wörter</div></div>
       <div class="kit k2"><span class="box-ico">🎒</span><div class="num" id="cntLearn">0</div><div class="lbl">Am Üben</div></div>
       <div class="kit k3"><span class="box-ico">⛑️</span><div class="num" id="cntDone">0</div><div class="lbl">Kann ich!</div></div>
     </div>
@@ -328,7 +329,7 @@ const SUBJECTS = {
     ]
   },
   ma: {
-    label: "Brüche", icon: "🍰", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
+    label: "Brüche", icon: "🍰", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe", exact: true,
     typeHint: "Tippe die Antwort – Brüche so: 3/4",
     words: [
       {id:"p14", short:"Kuchen: 1 von 4",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:4,k:1},  fw:"1/4",  say:"ein Viertel",   ch:["1/3","3/4","4/4"],
@@ -369,6 +370,114 @@ const SUBJECTS = {
        ex:"Der Nenner steht unten – merk dir: Nenner = «nieder». Er sagt, in wie viele Teile geteilt wird: hier 5."},
       {id:"z2", short:"Zähler von 2/7", de:"Was ist der Zähler von 2/7?", fw:"2", say:"zwei", ch:["7","27","9"],
        ex:"Der Zähler steht oben – er zählt, wie viele Teile man nimmt: hier 2. Unten steht der Nenner (7)."}
+    ]
+  },
+  sc: {
+    label: "Schach", icon: "♟️", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
+    typeHint: "Tippe die Antwort",
+    words: [
+      /* --- Figuren erkennen --- */
+      {id:"fig-t", short:"Figur: Turm", de:"Welche Figur steht auf dem Brett?", fig:{kind:"board",pieces:"Td4"},
+       fw:"Turm", say:"Turm", ch:["Läufer","Springer","Dame"],
+       ex:"Der Turm – er sieht aus wie ein Burgturm mit Zinnen. Er zieht gerade und ist 5 Punkte wert."},
+      {id:"fig-l", short:"Figur: Läufer", de:"Welche Figur steht auf dem Brett?", fig:{kind:"board",pieces:"Lc4"},
+       fw:"Läufer", say:"Läufer", ch:["Bauer","Turm","König"],
+       ex:"Der Läufer – oben hat er eine schräge Kerbe. Jeder Spieler hat zwei: einer läuft nur auf hellen, einer nur auf dunklen Feldern."},
+      {id:"fig-s", short:"Figur: Springer", de:"Welche Figur steht auf dem Brett?", fig:{kind:"board",pieces:"Sf3"},
+       fw:"Springer", say:"Springer", ch:["Läufer","Bauer","Dame"],
+       ex:"Der Springer – die Figur mit dem Pferdekopf. Er ist der einzige, der über andere Figuren springen darf."},
+      {id:"fig-d", short:"Figur: Dame", de:"Welche Figur steht auf dem Brett?", fig:{kind:"board",pieces:"Dd1"},
+       fw:"Dame", say:"Dame", ch:["König","Turm","Läufer"],
+       ex:"Die Dame – Krone mit vielen Zacken. Die stärkste Figur im Spiel: sie zieht gerade und schräg."},
+      {id:"fig-k", short:"Figur: König", de:"Welche Figur steht auf dem Brett?", fig:{kind:"board",pieces:"Ke1"},
+       fw:"König", say:"König", ch:["Dame","Turm","Springer"],
+       ex:"Der König – Krone mit einem Kreuz obendrauf. Er ist nicht stark, aber um ihn geht das ganze Spiel."},
+
+      /* --- Was ist eine Figur wert? --- */
+      {id:"wert-b", short:"Wert: Bauer", de:"Wie viele Punkte ist ein Bauer wert?", fig:{kind:"board",pieces:"Be4"},
+       fw:"1", say:"ein Punkt", exact:true, ch:["3","5","9"],
+       ex:"Der Bauer zählt 1 Punkt. Er ist die kleinste Einheit – alle anderen Figuren rechnet man in Bauern um."},
+      {id:"wert-s", short:"Wert: Springer", de:"Wie viele Punkte ist ein Springer wert?", fig:{kind:"board",pieces:"Sf3"},
+       fw:"3", say:"drei Punkte", exact:true, ch:["1","5","9"],
+       ex:"Springer und Läufer sind je 3 Punkte wert – so viel wie drei Bauern. Deshalb tauscht man sie nicht gegen einen Bauern."},
+      {id:"wert-t", short:"Wert: Turm", de:"Wie viele Punkte ist ein Turm wert?", fig:{kind:"board",pieces:"Ta1"},
+       fw:"5", say:"fünf Punkte", exact:true, ch:["1","3","9"],
+       ex:"Der Turm zählt 5 Punkte – mehr als ein Springer (3). Einen Springer gegen einen Turm zu tauschen ist deshalb ein guter Handel."},
+      {id:"wert-d", short:"Wert: Dame", de:"Wie viele Punkte ist eine Dame wert?", fig:{kind:"board",pieces:"Dd1"},
+       fw:"9", say:"neun Punkte", exact:true, ch:["3","5","12"],
+       ex:"Die Dame zählt 9 Punkte – fast so viel wie zwei Türme. Darum gibt man sie nie leichtfertig her."},
+
+      /* --- Wie ziehen die Figuren? --- */
+      {id:"zug-t", short:"Zug: Turm", de:"Wie zieht der Turm? Die gelben Felder zeigen es.",
+       fig:{kind:"board",pieces:"Td4",marks:"d1 d2 d3 d5 d6 d7 d8 a4 b4 c4 e4 f4 g4 h4"},
+       fw:"gerade", say:"gerade", ch:["schräg","im L","gar nicht"],
+       ex:"Der Turm zieht gerade: die Linie hoch und runter, die Reihe nach links und rechts – so weit er will, solange nichts im Weg steht."},
+      {id:"zug-l", short:"Zug: Läufer", de:"Wie zieht der Läufer? Die gelben Felder zeigen es.",
+       fig:{kind:"board",pieces:"Ld4",marks:"a1 b2 c3 e5 f6 g7 h8 a7 b6 c5 e3 f2 g1"},
+       fw:"schräg", say:"schräg", ch:["gerade","im L","rückwärts"],
+       ex:"Der Läufer zieht schräg – immer über die Ecken. Darum bleibt er sein Leben lang auf seiner Feldfarbe."},
+      {id:"zug-s", short:"Zug: Springer", de:"Wie zieht der Springer? Die gelben Felder zeigen es.",
+       fig:{kind:"board",pieces:"Sd4",marks:"b3 b5 c2 c6 e2 e6 f3 f5"},
+       fw:"im L", say:"im L", ch:["gerade","schräg","im Kreis"],
+       ex:"Im L: zwei Felder gerade, dann eines zur Seite. Er landet dabei immer auf der anderen Feldfarbe – und darf als Einziger überspringen."},
+      {id:"zug-k", short:"König: wie viele Felder?", de:"Auf wie viele Felder kann der König von e4 aus ziehen?",
+       fig:{kind:"board",pieces:"Ke4",marks:"d3 d4 d5 e3 e5 f3 f4 f5"},
+       fw:"8", say:"acht", exact:true, ch:["4","2","64"],
+       ex:"Acht. Der König zieht immer nur ein Feld weit – aber in alle acht Richtungen. Am Rand sind es entsprechend weniger."},
+      {id:"zug-d", short:"Wer zieht gerade und schräg?", de:"Welche Figur zieht gerade UND schräg?",
+       fig:{kind:"board",pieces:"Dd4",marks:"d1 d2 d3 d5 d6 d7 d8 a4 b4 c4 e4 f4 g4 h4 a1 b2 c3 e5 f6 g7 h8 a7 b6 c5 e3 f2 g1"},
+       fw:"Dame", say:"Dame", ch:["Turm","Läufer","Springer"],
+       ex:"Die Dame – sie kann alles, was Turm und Läufer zusammen können. Deshalb ist sie mit 9 Punkten die stärkste Figur."},
+
+      /* --- Brett und Feldnamen --- */
+      {id:"felder64", short:"Felder auf dem Brett", de:"Wie viele Felder hat ein Schachbrett?", fig:{kind:"board",pieces:""},
+       fw:"64", say:"vierundsechzig", exact:true, ch:["32","49","81"],
+       ex:"8 mal 8 = 64 Felder. Genau die Hälfte ist hell, die andere dunkel."},
+      {id:"feld-e4", short:"Feld benennen: e4", de:"Wie heisst das gelb markierte Feld?",
+       fig:{kind:"board",pieces:"",marks:"e4"},
+       fw:"e4", say:"E vier", exact:true, ch:["e5","d4","f4"],
+       ex:"Zuerst der Buchstabe von links nach rechts (e), dann die Zahl von unten nach oben (4). Also e4 – Buchstabe immer zuerst."},
+      {id:"feld-c6", short:"Feld benennen: c6", de:"Wie heisst das gelb markierte Feld?",
+       fig:{kind:"board",pieces:"",marks:"c6"},
+       fw:"c6", say:"C sechs", exact:true, ch:["c3","f6","b6"],
+       ex:"Dritte Linie von links (c), sechste Reihe von unten (6). Also c6."},
+      {id:"dame-start", short:"Wo steht die weisse Dame?", de:"Auf welchem Feld steht die weisse Dame am Anfang?",
+       fig:{kind:"board",pieces:"Ta1 Sb1 Lc1 Dd1 Ke1 Lf1 Sg1 Th1"},
+       fw:"d1", say:"D eins", exact:true, ch:["e1","c1","a1"],
+       ex:"Auf d1. Merksatz: «Die Dame steht auf ihrer Farbe» – die weisse Dame auf dem hellen Feld d1, der König daneben auf e1."},
+
+      /* --- Regeln --- */
+      {id:"schach", short:"König wird angegriffen", de:"Der König wird angegriffen. Wie heisst das?",
+       fig:{kind:"board",pieces:"Te1 ke8",marks:"e8"},
+       fw:"Schach", say:"Schach", ch:["Matt","Patt","Rochade"],
+       ex:"Schach! Der König wird angegriffen und muss sofort raus: wegziehen, den Angreifer schlagen, oder eine Figur dazwischenstellen."},
+      {id:"matt", short:"Schach ohne Ausweg", de:"Der König steht im Schach und kann sich nicht mehr retten. Wie heisst das?",
+       fw:"Matt", say:"Matt", ch:["Patt","Schach","Remis"],
+       ex:"Schachmatt – das Spiel ist zu Ende und gewonnen. Der König wird dabei nie wirklich geschlagen, er ist nur gefangen."},
+      {id:"patt", short:"Kein Zug, aber kein Schach", de:"Der König steht NICHT im Schach, kann aber keinen erlaubten Zug machen. Wie heisst das?",
+       fw:"Patt", say:"Patt", ch:["Matt","Schach","Sieg"],
+       ex:"Patt – unentschieden, niemand gewinnt. Ein wichtiger Rettungsanker: Wer fast nichts mehr hat, kann sich damit noch ins Remis retten."},
+      {id:"umwandlung", short:"Bauer auf der letzten Reihe", de:"Ein Bauer erreicht die letzte Reihe. In welche Figur verwandelt man ihn fast immer?",
+       fig:{kind:"board",pieces:"Bb7",marks:"b8"},
+       fw:"Dame", say:"Dame", ch:["Turm","Springer","König"],
+       ex:"In eine Dame – die stärkste Figur. Ein König geht nicht, alles andere wäre schwächer. Man darf sogar mehrere Damen gleichzeitig haben!"},
+      {id:"rochade", short:"König und Turm ziehen zusammen", de:"Wie heisst der Zug, bei dem König und Turm gleichzeitig ziehen?",
+       fw:"Rochade", say:"Rochade", ch:["Umwandlung","Gabel","Patt"],
+       ex:"Die Rochade. Der König geht zwei Felder Richtung Turm, der Turm springt auf die andere Seite. Sie bringt den König schnell in Sicherheit."},
+
+      /* --- Erste Taktik --- */
+      {id:"schlagen", short:"Was kann der Turm schlagen?", de:"Welche schwarze Figur kann der weisse Turm schlagen?",
+       fig:{kind:"board",pieces:"Td1 ld6 sb8"},
+       fw:"Läufer", say:"Läufer", ch:["Springer","Dame","Bauer"],
+       ex:"Den Läufer auf d6. Der Turm zieht gerade – auf der d-Linie ist nichts im Weg. Der Springer auf b8 steht auf einer anderen Linie."},
+      {id:"mattin1", short:"Matt in einem Zug", de:"Weiss zieht und setzt matt. Auf welches Feld muss der Turm?",
+       fig:{kind:"board",pieces:"Te1 kg8 bf7 bg7 bh7"},
+       fw:"e8", say:"E acht", exact:true, ch:["e7","a1","g1"],
+       ex:"Turm nach e8 – matt auf der Grundreihe. Der König kann nicht nach oben, weil seine eigenen Bauern im Weg stehen. Darum macht man früh ein «Luftloch»."},
+      {id:"gabel", short:"Zwei Figuren gleichzeitig", de:"Der Springer greift König und Turm gleichzeitig an. Wie heisst dieser Trick?",
+       fig:{kind:"board",pieces:"Sc7 ka8 te8",marks:"a8 e8"},
+       fw:"Gabel", say:"Gabel", ch:["Rochade","Patt","Fessel"],
+       ex:"Eine Gabel. Der König muss aus dem Schach – danach fällt der Turm. Der Springer ist Weltmeister darin, weil er aus ungewohnten Richtungen angreift."}
     ]
   }
 };
@@ -516,10 +625,84 @@ function barSVG(n,k){
   }
   return '<svg viewBox="0 0 '+W+' '+H+'" width="240" height="56" role="img" aria-label="Balken in '+n+' Teilen, '+k+' markiert">'+rects+'</svg>';
 }
+/* ---------- Schachbrett ---------- */
+/* Figuren als Text: "Td4 ke8" – Grossbuchstabe = Weiss, klein = Schwarz.
+   K König, D Dame, T Turm, L Läufer, S Springer, B Bauer.
+   Gezeichnet wird mit den Unicode-Vollfiguren (♚♛♜♝♞♟) für beide Farben,
+   Weiss entsteht über fill/stroke. Die Umriss-Zeichen (♔♕…) sind auf hellen
+   Feldern kaum zu sehen, deshalb bewusst nicht verwendet. */
+const PIECE_GLYPH = {k:"♚", d:"♛", t:"♜", l:"♝", s:"♞", b:"♟"};
+const PIECE_NAME  = {k:"König", d:"Dame", t:"Turm", l:"Läufer", s:"Springer", b:"Bauer"};
+const GLYPH_FONT  = "'Apple Symbols','Segoe UI Symbol','DejaVu Sans',sans-serif";
+
+function sqList(str){ return (str||"").trim().split(/\s+/).filter(Boolean); }
+
+function parsePieces(str){
+  const out = [];
+  for(const tok of sqList(str)){
+    const m = /^([KDTLSBkdtlsb])([a-h])([1-8])$/.exec(tok);
+    if(!m) continue;
+    out.push({p:m[1].toLowerCase(), white:m[1] === m[1].toUpperCase(),
+              f:m[2].charCodeAt(0)-97, r:+m[3]-1, sq:m[2]+m[3]});
+  }
+  return out;
+}
+
+function boardSVG(pieces, marks){
+  const S = 34, N = 8, PADL = 15, PADB = 15;
+  const W = PADL + N*S, H = N*S + PADB;
+  const LIGHT = "#F0E2CE", DARK = "#B98B62";
+  const marked = new Set(sqList(marks));
+  let out = "";
+
+  for(let f=0; f<N; f++){
+    for(let r=0; r<N; r++){
+      const x = PADL + f*S, y = (N-1-r)*S;
+      const sq = String.fromCharCode(97+f) + (r+1);
+      out += '<rect x="'+x+'" y="'+y+'" width="'+S+'" height="'+S+'" fill="'+(((f+r)%2===0)?DARK:LIGHT)+'"/>';
+      if(marked.has(sq)){
+        out += '<rect x="'+(x+2.5)+'" y="'+(y+2.5)+'" width="'+(S-5)+'" height="'+(S-5)+'" rx="4" '
+             + 'fill="#F7B733" fill-opacity=".70" stroke="#8A6100" stroke-width="2"/>';
+      }
+    }
+  }
+
+  const ps = parsePieces(pieces);
+  for(const p of ps){
+    const x = PADL + p.f*S + S/2, y = (N-1-p.r)*S + S/2;
+    out += '<text x="'+x+'" y="'+y+'" font-size="'+(S*0.80).toFixed(1)+'" text-anchor="middle" '
+         + 'dominant-baseline="central" fill="'+(p.white?"#FFFFFF":"#1D3049")+'" '
+         + 'stroke="'+(p.white?"#1D3049":"#F4F7FA")+'" stroke-width="1" paint-order="stroke" '
+         + 'style="font-family:'+GLYPH_FONT+'">' + PIECE_GLYPH[p.p] + '</text>';
+  }
+
+  for(let f=0; f<N; f++){
+    out += '<text x="'+(PADL+f*S+S/2)+'" y="'+(N*S+11)+'" font-size="10" text-anchor="middle" '
+         + 'fill="#5A6E85" font-weight="700">'+String.fromCharCode(97+f)+'</text>';
+  }
+  for(let r=0; r<N; r++){
+    out += '<text x="6.5" y="'+((N-1-r)*S+S/2)+'" font-size="10" text-anchor="middle" '
+         + 'dominant-baseline="central" fill="#5A6E85" font-weight="700">'+(r+1)+'</text>';
+  }
+
+  const side = c => ps.filter(p=>p.white===c).map(p=>PIECE_NAME[p.p]+" "+p.sq).join(", ") || "nichts";
+  let label = "Schachbrett. Weiss: " + side(true) + ". Schwarz: " + side(false) + ".";
+  if(marked.size) label += " Gelb markiert: " + [...marked].join(", ") + ".";
+
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="'+label+'">'
+       + out
+       + '<rect x="'+PADL+'" y="0" width="'+(N*S)+'" height="'+(N*S)+'" fill="none" stroke="#1D3049" stroke-width="2"/>'
+       + '</svg>';
+}
+
 function renderFig(item){
   const el = $("promptFig");
   if(item.fig){
-    el.innerHTML = item.fig.kind==="pie" ? pieSVG(item.fig.n, item.fig.k) : barSVG(item.fig.n, item.fig.k);
+    const f = item.fig;
+    el.innerHTML = f.kind==="pie"   ? pieSVG(f.n, f.k)
+                 : f.kind==="bar"   ? barSVG(f.n, f.k)
+                 : f.kind==="board" ? boardSVG(f.pieces, f.marks)
+                 : "";
     el.style.display = "block";
   } else {
     el.innerHTML = ""; el.style.display = "none";
@@ -535,7 +718,7 @@ function show(name){
 
 /* ---------- Startscreen ---------- */
 function renderHome(){
-  const TABS = {en:"tabEn", fr:"tabFr", ma:"tabMa"};
+  const TABS = {en:"tabEn", fr:"tabFr", ma:"tabMa", sc:"tabSc"};
   for(const [key,tid] of Object.entries(TABS)){
     $(tid).classList.toggle("active", state.subject===key);
     $(tid).setAttribute("aria-selected", state.subject===key);
@@ -547,6 +730,7 @@ function renderHome(){
     if(b===0) c0++; else if(b===1) c1++; else c2++;
   }
   $("cntNew").textContent = c0;
+  $("lblNew").textContent = "Neue " + (subj().unit || "Wörter");
   $("cntLearn").textContent = c1;
   $("cntDone").textContent = c2;
   $("starCount").textContent = state.stars;
@@ -644,8 +828,12 @@ function answerTyped(){
   answered = true;
   const target = norm(current.fw);
   let result = "no";
-  if(current.ch){
-    // Mathe: exakt vergleichen (Leerzeichen egal), keine Toleranz – 1/3 ist nicht «fast» 1/4
+  /* Exakt oder tippfehler-tolerant? Frueher hing das an `ch` und galt damit fuer
+     ein ganzes Fach. Schach braucht beides: «e4» und «9» muessen exakt stimmen,
+     bei «Springer» waere ein verdrehter Buchstabe unnoetig hart. Deshalb ein
+     eigenes Merkmal – pro Aufgabe, sonst pro Fach. */
+  const exact = (current.exact !== undefined) ? current.exact : !!subj().exact;
+  if(exact){
     result = raw.replace(/\s/g,"") === target.replace(/\s/g,"") ? "ok" : "no";
   } else {
     const dist = lev(raw, target);
@@ -730,6 +918,7 @@ function renderList(){
 $("tabEn").addEventListener("click", ()=>setSubject("en"));
 $("tabFr").addEventListener("click", ()=>setSubject("fr"));
 $("tabMa").addEventListener("click", ()=>setSubject("ma"));
+$("tabSc").addEventListener("click", ()=>setSubject("sc"));
 $("btnStart").addEventListener("click", ()=>{ buildQueue(); show("session"); nextCard(); });
 $("btnNext").addEventListener("click", nextCard);
 $("btnCheck").addEventListener("click", answerTyped);
@@ -760,7 +949,7 @@ $("btnQuit").addEventListener("click", quitSession);
 /* ---------- Lernstand sichern & zurueckholen ---------- */
 /* Wird beim Deployen hochgezaehlt – dient auch als Kontrolle, ob das iPad
    wirklich die neue Fassung geladen hat. */
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 const BUILD_DATE  = "2026-08-21";
 
 function buildBackup(){

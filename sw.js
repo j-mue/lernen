@@ -7,7 +7,7 @@
  *
  * Beim Deployen VERSION hochzählen, sonst behalten iPads den alten Cache.
  */
-const VERSION = "v1.1.0";
+const VERSION = "v1.2.0";
 const CACHE   = "woerter-trainer-" + VERSION;
 
 const CORE = [

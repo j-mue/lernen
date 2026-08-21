@@ -1,7 +1,7 @@
 {
   "name": "Wörtertrainer",
   "short_name": "Wörter",
-  "description": "Vokabeln und Brüche üben – in kleinen Portionen, mit Wiederholsystem.",
+  "description": "Englisch, Französisch, Brüche und Schach üben – in kleinen Portionen, mit Wiederholsystem.",
   "lang": "de",
   "dir": "ltr",
   "start_url": "./",

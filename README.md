@@ -1,7 +1,7 @@
 # Wörtertrainer
 
-Kleine Lern-App für die Primarschule: Englisch- und Französisch-Wortschatz sowie
-Brüche. Eine einzige HTML-Datei, kein Build, kein Account, keine Werbung.
+Kleine Lern-App für die Primarschule: Englisch- und Französisch-Wortschatz,
+Brüche und Schach für Einsteiger. Eine einzige HTML-Datei, kein Build, kein Account, keine Werbung.
 Läuft nach dem ersten Laden offline und lässt sich auf dem iPad wie eine
 normale App auf den Home-Bildschirm legen.
 
@@ -32,6 +32,7 @@ aktives Erinnern in kleinen, über Tage verteilten Portionen bringt viel.
 | 🚑 English | 19 Wörter Notfall-Wortschatz (accident, injured, ambulance …) |
 | 🎒 Français | 11 Wörter Schulsachen (le livre, la trousse …), inkl. Artikel |
 | 🍰 Brüche | 19 Aufgaben, mit Erklärung nach jeder Antwort |
+| ♟️ Schach | 26 Einsteiger-Aufgaben mit Brettdiagrammen |
 
 Besonderheiten:
 
@@ -42,6 +43,11 @@ Besonderheiten:
   „6 Teile → Nenner 6 (unten). 2 markiert → Zähler 2 (oben)." Die falschen
   Auswahlmöglichkeiten sind bewusst die typischen Fehler (umgedrehter Bruch 6/2,
   falsch gezählte Teile).
+- **Schach:** Aufbau vom Erkennen der Figuren über ihre Werte und Zugregeln zu
+  Feldnamen, Regeln (Schach, Matt, Patt, Rochade, Umwandlung) und erster Taktik
+  (Gabel, Matt in einem Zug). 23 der 26 Aufgaben haben ein Brettdiagramm, das
+  als SVG gezeichnet wird (`boardSVG()`). Bei den Zugregeln zeigen gelb markierte
+  Felder das Bewegungsmuster – das Diagramm erklärt, die Frage prüft nur nach.
 - **Aussprache:** Web Speech API. Vorgelesen wird nur das Wort, nicht der
   Beispielsatz. Bei Mathe wird die Wortform gesprochen („zwei Sechstel").
 
@@ -84,9 +90,38 @@ Ein Eintrag pro Wort:
 - `de` – was angezeigt wird (Deutsch)
 - `fw` – die erwartete Antwort
 - `ex` – Beispielsatz (wird angezeigt, nicht vorgelesen)
-- Mathe zusätzlich: `ch` (3 falsche Auswahlmöglichkeiten), `say` (Wortform zum
-  Vorlesen), `fig` (Grafik: `{kind:"pie"|"bar", n:Teile, k:markiert}`), `short`
-  (Kurzlabel für die Übersicht)
+- `ch` – 3 falsche Auswahlmöglichkeiten (nötig für Brüche und Schach, weil sich
+  dort keine sinnvollen Distraktoren aus den anderen Einträgen ziehen lassen)
+- `say` – Wortform zum Vorlesen, z. B. `"E vier"` für `e4`
+- `short` – Kurzlabel für die Übersicht
+- `fig` – Grafik, drei Arten:
+  - `{kind:"pie", n:Teile, k:markiert}` – Kuchen
+  - `{kind:"bar", n:Teile, k:markiert}` – Balken
+  - `{kind:"board", pieces:"Td4 ke8", marks:"e4 f5"}` – Schachbrett
+- `exact` – `true` erzwingt exakten Vergleich ohne Tippfehler-Toleranz.
+  Pro Fach setzbar (`exact: true` bei Brüche), pro Aufgabe übersteuerbar.
+
+### Schachdiagramme
+
+`pieces` ist eine Liste durch Leerzeichen getrennt, ein Eintrag pro Figur:
+**Grossbuchstabe = Weiss, Kleinbuchstabe = Schwarz**, dann das Feld.
+
+| Buchstabe | Figur |
+|---|---|
+| `K` / `k` | König |
+| `D` / `d` | Dame |
+| `T` / `t` | Turm |
+| `L` / `l` | Läufer |
+| `S` / `s` | Springer |
+| `B` / `b` | Bauer |
+
+`"Te1 kg8 bf7 bg7 bh7"` heisst also: weisser Turm e1, schwarzer König g8,
+schwarze Bauern f7, g7, h7. `marks` markiert Felder gelb, gleiches Format ohne
+Figurenbuchstaben: `"a8 e8"`.
+
+Gezeichnet wird mit den Unicode-Vollfiguren (♚♛♜♝♞♟) für beide Farben; Weiss
+entsteht über Füllung und Kontur. Die Umriss-Zeichen (♔♕…) wären auf hellen
+Feldern kaum zu sehen.
 
 Ein neues Fach = ein weiterer Schlüssel in `SUBJECTS`, ein Button im Switcher
 (`tabXx`) und eine Zeile bei den Events (`setSubject`).

@@ -146,10 +146,21 @@ Ein neues Fach = ein weiterer Schlüssel in `SUBJECTS`, ein Button im Switcher
 
 Push auf `main` → GitHub Pages veröffentlicht automatisch.
 
-**Nach jeder inhaltlichen Änderung `VERSION` in `sw.js` hochzählen.** Sonst
-behalten iPads den alten Cache und die neuen Wörter tauchen nie auf. Ebenso
+**Nach jeder inhaltlichen Änderung `VERSION` in `sw.js` hochzählen.** Ebenso
 `APP_VERSION` in `index.html` – die Nummer steht unter „Lernstand sichern" und
 zeigt, ob das Gerät wirklich die neue Fassung hat.
+
+Zwei Fallstricke, die im Service Worker bereits behandelt sind – beim Ändern
+nicht wieder einbauen:
+
+- **`no-store` beim Abrufen.** GitHub Pages liefert `index.html` mit
+  `cache-control: max-age=600`. Ein normales `fetch()` im Worker bekommt
+  dadurch bis zu 10 Minuten lang die alte Datei aus dem HTTP-Cache des Browsers
+  – und schreibt sie über die frisch vorgeladene.
+- **`event.waitUntil()` um jeden Cache-Schreibvorgang.** Ohne das darf der
+  Browser den Worker beenden, sobald die Antwort ausgeliefert ist, also mitten
+  im Schreiben. Der Cache hinkt dann dauerhaft eine Version hinterher und zeigt
+  offline die alten Wörter.
 
 ## Dateien
 

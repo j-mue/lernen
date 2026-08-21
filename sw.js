@@ -39,6 +39,35 @@ self.addEventListener("activate", e => {
   );
 });
 
+/* Netz zuerst, aber nicht endlos warten: bei zaehem WLAN nach NET_TIMEOUT die
+ * gespeicherte Fassung ausliefern. Der laufende Abruf aktualisiert den Cache
+ * trotzdem weiter, die neue Fassung ist also beim naechsten Start da.
+ * Ohne das steht das Kind bei schlechtem Empfang vor einem leeren Bildschirm.
+ */
+const NET_TIMEOUT = 2500;
+
+function networkFirstWithTimeout(req) {
+  return new Promise(resolve => {
+    let settled = false;
+    const done = r => { if (!settled && r) { settled = true; resolve(r); } };
+
+    const timer = setTimeout(() => {
+      caches.match("index.html").then(done);
+    }, NET_TIMEOUT);
+
+    fetch(req).then(res => {
+      clearTimeout(timer);
+      caches.open(CACHE).then(c => c.put("index.html", res.clone()));
+      done(res);
+    }).catch(() => {
+      clearTimeout(timer);
+      caches.match("index.html")
+        .then(hit => hit || caches.match("./"))
+        .then(hit => done(hit || Response.error()));
+    });
+  });
+}
+
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -47,15 +76,7 @@ self.addEventListener("fetch", e => {
   const isDoc = req.mode === "navigate" || req.destination === "document";
 
   if (isDoc) {
-    e.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE).then(c => c.put("index.html", copy));
-          return res;
-        })
-        .catch(() => caches.match("index.html").then(r => r || caches.match("./")))
-    );
+    e.respondWith(networkFirstWithTimeout(req));
     return;
   }
 

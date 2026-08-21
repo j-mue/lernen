@@ -748,7 +748,10 @@ function renderHome(){
     $("btnStart").textContent = "Auffrischen ⛑️";
   } else {
     const unit = subj().unit || "Wörter", one = subj().one || "Wort";
-    $("homeMsg").textContent = (due.length===1 ? "1 "+one+" wartet" : due.length+" "+unit+" warten") + " auf dich – wir üben " + Math.min(SESSION_SIZE, due.length) + " davon.";
+    const geplant = selectForSession().length;
+    const wartet = due.length===1 ? "1 "+one+" wartet" : due.length+" "+unit+" warten";
+    $("homeMsg").textContent = wartet + " auf dich – "
+      + (geplant >= due.length ? "wir üben alle." : "wir üben " + geplant + " davon.");
     $("btnStart").textContent = "Los geht's! 🚀";
   }
 }
@@ -763,11 +766,22 @@ function setSubject(key){
 /* ---------- Session ---------- */
 let queue = [], current = null, sessionStars = 0, sessionCount = 0, answered = false;
 
-function buildQueue(){
+/* Was kommt in die naechste Runde?
+   Neue Eintraege (Box 0) laufen als Auswahlfrage mit vier Antworten – erkennen
+   statt abrufen. Das geht schnell, deshalb kommen sie vollzaehlig dran: lieber
+   einmal den ganzen neuen Stoff sehen als ihn ueber Tage zu zerstueckeln.
+   Portioniert werden nur die Wiederholungen, die getippt werden muessen –
+   Abrufen ist die anstrengende Haelfte. */
+function selectForSession(){
   const due = subj().words.filter(w=>isDue(wordsState()[w.id]));
   const reviews = shuffle(due.filter(w=>wordsState()[w.id].box>0));
   const fresh   = shuffle(due.filter(w=>wordsState()[w.id].box===0));
-  let pick = reviews.concat(fresh).slice(0, SESSION_SIZE);
+  return reviews.slice(0, SESSION_SIZE).concat(fresh);
+}
+
+function buildQueue(){
+  let pick = selectForSession();
+  /* «Trotzdem nochmal ueben»: freiwillige Zusatzrunde bleibt bewusst kurz. */
   if(pick.length===0) pick = shuffle(subj().words).slice(0, SESSION_SIZE);
   queue = pick;
   sessionStars = 0; sessionCount = queue.length;
@@ -958,7 +972,7 @@ $("btnQuit").addEventListener("click", quitSession);
 /* ---------- Lernstand sichern & zurueckholen ---------- */
 /* Wird beim Deployen hochgezaehlt – dient auch als Kontrolle, ob das iPad
    wirklich die neue Fassung geladen hat. */
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const BUILD_DATE  = "2026-08-21";
 
 function buildBackup(){

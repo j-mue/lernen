@@ -12,7 +12,11 @@ normale App auf den Home-Bildschirm legen.
 Grundprinzip: **Abrufen schlägt Anschauen.** Wiederholtes Durchlesen bringt wenig,
 aktives Erinnern in kleinen, über Tage verteilten Portionen bringt viel.
 
-- **Portionen statt Listen** – max. 7 Einträge pro Runde (`SESSION_SIZE`)
+- **Portionen dort, wo es anstrengt** – neue Einträge laufen als Auswahlfrage
+  (erkennen) und kommen deshalb **vollzählig** in eine Runde: lieber einmal den
+  ganzen neuen Stoff sehen als ihn über Tage zerstückeln. Portioniert werden nur
+  die Wiederholungen, die getippt werden müssen – max. 7 pro Runde
+  (`SESSION_SIZE`), weil Abrufen die anstrengende Hälfte ist
 - **Leitner-System mit drei „Koffern"**
   - Box 0 = neu → jeden Tag
   - Box 1 = am Üben → nach 1 Tag

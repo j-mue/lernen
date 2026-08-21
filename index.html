@@ -83,6 +83,11 @@
   .center{text-align:center;}
 
   /* Session */
+  .session-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .session-top .btn.ghost{padding:8px 16px; font-size:.95rem;}
+  .subject-badge{font-family:'Baloo 2'; font-weight:700; font-size:.95rem; color:var(--ink-soft);
+    background:var(--card); border-radius:999px; padding:8px 14px; box-shadow:var(--shadow);
+    white-space:nowrap;}
   .progressbar{height:10px; background:#E4EBF3; border-radius:999px; overflow:hidden;}
   .progressbar .fill{height:100%; width:0%; background:var(--green); border-radius:999px; transition:width .3s ease;}
   .prompt-card{text-align:center; padding:28px 20px;}
@@ -199,6 +204,10 @@
 
   <!-- SESSION -->
   <section class="screen" id="screen-session">
+    <div class="session-top">
+      <button class="btn ghost" id="btnQuit" aria-label="Runde beenden und zurück zum Start">← Zurück</button>
+      <span class="subject-badge" id="sessionSubject"></span>
+    </div>
     <div class="progressbar" aria-hidden="true"><div class="fill" id="progFill"></div></div>
     <div class="card prompt-card">
       <div class="eyebrow" id="taskLabel">Welches Wort ist richtig?</div>
@@ -277,7 +286,7 @@
 /* ---------- Fächer & Wörter ---------- */
 const SUBJECTS = {
   en: {
-    label: "English", lang: "en-GB",
+    label: "English", icon: "🚑", lang: "en-GB",
     typeHint: "Tippe das englische Wort",
     words: [
       {id:"accident",  de:"Unfall",                    fw:"accident",            ex:"There was an accident."},
@@ -302,7 +311,7 @@ const SUBJECTS = {
     ]
   },
   fr: {
-    label: "Français", lang: "fr-FR",
+    label: "Français", icon: "🎒", lang: "fr-FR",
     typeHint: "Tippe das französische Wort – mit le oder la",
     words: [
       {id:"livre",    de:"das Buch",          fw:"le livre",        ex:"Le livre est sur la table."},
@@ -319,7 +328,7 @@ const SUBJECTS = {
     ]
   },
   ma: {
-    label: "Brüche", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
+    label: "Brüche", icon: "🍰", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
     typeHint: "Tippe die Antwort – Brüche so: 3/4",
     words: [
       {id:"p14", short:"Kuchen: 1 von 4",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:4,k:1},  fw:"1/4",  say:"ein Viertel",   ch:["1/3","3/4","4/4"],
@@ -577,6 +586,7 @@ function buildQueue(){
   if(pick.length===0) pick = shuffle(subj().words).slice(0, SESSION_SIZE);
   queue = pick;
   sessionStars = 0; sessionCount = queue.length;
+  $("sessionSubject").textContent = subj().icon + " " + subj().label;
 }
 
 function nextCard(){
@@ -729,10 +739,28 @@ $("btnHome").addEventListener("click", ()=>{ renderHome(); show("home"); });
 $("btnList").addEventListener("click", ()=>{ renderList(); show("list"); });
 $("btnBack").addEventListener("click", ()=>{ renderHome(); show("home"); });
 
+/* Runde vorzeitig verlassen – vor allem fuer den Fall, dass das falsche Fach
+   erwischt wurde. Bewusst ohne Rueckfrage: Box und Datum jedes beantworteten
+   Worts sind laengst gespeichert (applyResult), einzig die Sterne der Runde
+   haengen noch in der Luft. Die werden hier gutgeschrieben, damit ein Abbruch
+   wirklich nichts kostet. */
+function quitSession(){
+  try{ speechSynthesis.cancel(); }catch(e){}
+  if(sessionStars > 0){
+    state.stars += sessionStars;
+    sessionStars = 0;
+    saveState();
+  }
+  queue = []; current = null; answered = false;
+  renderHome();
+  show("home");
+}
+$("btnQuit").addEventListener("click", quitSession);
+
 /* ---------- Lernstand sichern & zurueckholen ---------- */
 /* Wird beim Deployen hochgezaehlt – dient auch als Kontrolle, ob das iPad
    wirklich die neue Fassung geladen hat. */
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const BUILD_DATE  = "2026-08-21";
 
 function buildBackup(){

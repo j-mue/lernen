@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Wörtertrainer – Englisch & Französisch</title>
+<meta name="theme-color" content="#2E6FE0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wörtertrainer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  /* Lokale Variable Fonts - latin-Subset, deckt Umlaute und franz. Akzente ab.
+     Bewusst eingebettet statt von Google: sonst sieht die App offline anders aus. */
+  @font-face{font-family:'Baloo 2';font-style:normal;font-weight:400 800;font-display:swap;
+    src:url(fonts/Baloo2.woff2) format('woff2');}
+  @font-face{font-family:'Nunito';font-style:normal;font-weight:200 1000;font-display:swap;
+    src:url(fonts/Nunito.woff2) format('woff2');}
+</style>
+<style>
+  :root{
+    --sky:#F2F7FB; --card:#FFFFFF; --ink:#1D3049; --ink-soft:#5A6E85;
+    --blue:#2E6FE0; --blue-deep:#1F55B5; --red:#E4483F; --green:#2FA26A;
+    --green-soft:#E3F4EB; --yellow:#F7B733; --line:#DCE6F0;
+    --radius:20px; --shadow:0 6px 20px rgba(29,48,73,.10);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Nunito',system-ui,sans-serif; background:var(--sky); color:var(--ink);
+    display:flex; justify-content:center; padding:16px;
+    background-image:radial-gradient(circle at 15% 20%, rgba(46,111,224,.06) 0 120px, transparent 120px),
+                     radial-gradient(circle at 85% 80%, rgba(228,72,63,.05) 0 140px, transparent 140px);
+  }
+  .app{width:100%; max-width:520px; display:flex; flex-direction:column; gap:16px;}
+  h1,h2,.display{font-family:'Baloo 2',system-ui,sans-serif;}
+  header{display:flex; align-items:center; justify-content:space-between; padding:4px 4px 0;}
+  header h1{font-size:1.35rem; line-height:1.1;}
+  header h1 span{color:var(--red);}
+  .stars{background:var(--card); border-radius:999px; padding:6px 14px; box-shadow:var(--shadow);
+    font-weight:800; display:flex; align-items:center; gap:6px; font-size:1rem;}
+  .stars .ico{color:var(--yellow);}
+
+  .switcher{display:flex; background:var(--card); border-radius:999px; padding:4px; box-shadow:var(--shadow); gap:4px;}
+  .switcher button{flex:1; border:none; background:transparent; font-family:'Baloo 2'; font-weight:700;
+    font-size:1rem; padding:10px; border-radius:999px; cursor:pointer; color:var(--ink-soft);
+    transition:background .12s ease, color .12s ease;}
+  .switcher button.active{background:var(--blue); color:#fff;}
+  .switcher button:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
+
+  .screen{display:none; flex-direction:column; gap:16px;}
+  .screen.active{display:flex;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px;}
+
+  /* Koffer (Leitner-Boxen) */
+  .kits{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .kit{background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:12px 10px 14px;
+    text-align:center; position:relative; overflow:hidden;}
+  .kit::before{content:""; position:absolute; top:0; left:0; right:0; height:6px; background:var(--line);}
+  .kit.k1::before{background:var(--blue);}
+  .kit.k2::before{background:var(--yellow);}
+  .kit.k3::before{background:var(--green);}
+  .kit .num{font-family:'Baloo 2'; font-size:1.7rem; font-weight:800; line-height:1;}
+  .kit .lbl{font-size:.72rem; font-weight:700; color:var(--ink-soft); margin-top:2px;}
+  .kit .box-ico{font-size:1.1rem; display:block; margin-bottom:2px;}
+
+  .btn{font-family:'Baloo 2'; font-weight:700; font-size:1.05rem; border:none; border-radius:16px;
+    padding:14px 20px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+    background:var(--blue); color:#fff; box-shadow:0 4px 0 var(--blue-deep);}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(2px); box-shadow:0 2px 0 var(--blue-deep);}
+  .btn:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
+  .btn.big{font-size:1.3rem; padding:18px 24px; width:100%;}
+  .btn.ghost{background:transparent; color:var(--blue); box-shadow:none; border:2px solid var(--line);}
+  .btn.ghost:active{transform:none;}
+  .btn.green{background:var(--green); box-shadow:0 4px 0 #22815426;}
+  .btn:disabled{opacity:.5; cursor:default; transform:none;}
+
+  .subtle{color:var(--ink-soft); font-size:.9rem; font-weight:700;}
+  .center{text-align:center;}
+
+  /* Session */
+  .progressbar{height:10px; background:#E4EBF3; border-radius:999px; overflow:hidden;}
+  .progressbar .fill{height:100%; width:0%; background:var(--green); border-radius:999px; transition:width .3s ease;}
+  .prompt-card{text-align:center; padding:28px 20px;}
+  .prompt-card .eyebrow{font-size:.8rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--red);}
+  .prompt-card .word{font-family:'Baloo 2'; font-size:2rem; font-weight:800; margin-top:6px; line-height:1.15;}
+  .choices{display:grid; gap:10px;}
+  .choice{font-family:'Nunito'; font-weight:800; font-size:1.05rem; text-align:left; padding:14px 16px;
+    border-radius:14px; border:2px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;}
+  .choice:hover{border-color:var(--blue);}
+  .choice:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
+  .choice.correct{border-color:var(--green); background:var(--green-soft);}
+  .choice.wrong{border-color:var(--red); background:#FBEAE9;}
+  .choice:disabled{cursor:default;}
+
+  .typebox{display:flex; gap:8px;}
+  .typebox input{flex:1; font-family:'Nunito'; font-weight:800; font-size:1.15rem; padding:14px 16px;
+    border-radius:14px; border:2px solid var(--line); color:var(--ink); background:var(--card); min-width:0;}
+  .typebox input:focus{outline:none; border-color:var(--blue);}
+
+  .feedback{border-radius:14px; padding:14px 16px; font-weight:800; display:none; align-items:flex-start; gap:10px;}
+  .feedback.show{display:flex;}
+  .feedback.ok{background:var(--green-soft); color:#1E7A4E;}
+  .feedback.almost{background:#FDF3DC; color:#8A6100;}
+  .feedback.no{background:#FBEAE9; color:#A8322B;}
+  .feedback .answer{font-family:'Baloo 2'; font-size:1.15rem;}
+  .feedback .example{font-weight:700; font-size:.9rem; color:var(--ink-soft); margin-top:2px;}
+
+  .speak-btn{background:var(--card); border:2px solid var(--line); border-radius:999px;
+    width:44px; height:44px; font-size:1.2rem; cursor:pointer; flex-shrink:0;}
+  .speak-btn:hover{border-color:var(--blue);}
+  .speak-btn:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
+
+  /* Wörterliste */
+  .wordlist{display:flex; flex-direction:column; gap:8px;}
+  .wordrow{display:flex; align-items:center; gap:10px; background:var(--card); border-radius:14px;
+    padding:10px 12px; box-shadow:var(--shadow);}
+  .wordrow .de{font-weight:800; flex:1;}
+  .wordrow .fw{font-weight:700; color:var(--blue); flex:1;}
+  .dot{width:10px; height:10px; border-radius:50%; background:var(--line); flex-shrink:0;}
+  .dot.k1{background:var(--blue);} .dot.k2{background:var(--yellow);} .dot.k3{background:var(--green);}
+
+  /* Feier-Screen */
+  .party{text-align:center; padding:32px 20px;}
+  .party .big-ico{font-size:3rem;}
+  .party h2{font-size:1.6rem; margin-top:8px;}
+  .party .earned{font-family:'Baloo 2'; font-size:1.2rem; color:var(--yellow); font-weight:800; margin-top:4px;}
+
+  .footer-note{text-align:center; font-size:.78rem; color:var(--ink-soft); font-weight:700; padding-bottom:8px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+  @keyframes pop{0%{transform:scale(.6); opacity:0;} 100%{transform:scale(1); opacity:1;}}
+  .pop{animation:pop .25s ease;}
+
+  /* Vollbildmodus auf dem iPad: nicht unter Notch/Home-Indikator rutschen */
+  body{padding-top:calc(16px + env(safe-area-inset-top));
+       padding-bottom:calc(16px + env(safe-area-inset-bottom));
+       padding-left:calc(16px + env(safe-area-inset-left));
+       padding-right:calc(16px + env(safe-area-inset-right));}
+
+  /* Kind tippt schnell und mehrfach: kein Zoom-Delay, kein Lupen-Popup,
+     keine versehentliche Textauswahl auf Knoepfen. */
+  button{touch-action:manipulation; -webkit-touch-callout:none;
+         -webkit-user-select:none; user-select:none;}
+
+  /* Lernstand sichern */
+  .backup-link{background:none; border:none; color:var(--ink-soft); font-family:'Nunito';
+    font-weight:700; font-size:.78rem; text-decoration:underline; cursor:pointer; padding:6px;}
+  .backup-link:focus-visible{outline:3px solid var(--yellow); outline-offset:2px;}
+  .backup-area{width:100%; min-height:120px; font-family:ui-monospace,Menlo,monospace;
+    font-size:.72rem; padding:10px; border-radius:12px; border:2px solid var(--line);
+    background:#FBFDFF; color:var(--ink); resize:vertical;}
+  .backup-area:focus{outline:none; border-color:var(--blue);}
+  .backup-step{font-family:'Baloo 2'; font-weight:700; font-size:1rem; margin-bottom:6px;}
+  .backup-note{font-size:.8rem; color:var(--ink-soft); font-weight:700; margin-top:6px; line-height:1.4;}
+  .backup-status{font-weight:800; font-size:.85rem; margin-top:8px; min-height:1.2em;}
+  .backup-status.ok{color:var(--green);} .backup-status.err{color:var(--red);}
+  .ver{font-size:.7rem; color:var(--ink-soft); font-weight:700; text-align:center; margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Wörter<span>trainer</span></h1>
+    <div class="stars" aria-label="Gesammelte Sterne"><span class="ico">★</span><span id="starCount">0</span></div>
+  </header>
+
+  <!-- START -->
+  <section class="screen active" id="screen-home">
+    <div class="switcher" role="tablist" aria-label="Sprache wählen">
+      <button id="tabEn" role="tab" aria-selected="true" class="active">🚑 English</button>
+      <button id="tabFr" role="tab" aria-selected="false">🎒 Français</button>
+      <button id="tabMa" role="tab" aria-selected="false">🍰 Brüche</button>
+    </div>
+    <div class="kits" aria-label="Deine drei Koffer">
+      <div class="kit k1"><span class="box-ico">📦</span><div class="num" id="cntNew">0</div><div class="lbl">Neue Wörter</div></div>
+      <div class="kit k2"><span class="box-ico">🎒</span><div class="num" id="cntLearn">0</div><div class="lbl">Am Üben</div></div>
+      <div class="kit k3"><span class="box-ico">⛑️</span><div class="num" id="cntDone">0</div><div class="lbl">Kann ich!</div></div>
+    </div>
+    <div class="card center">
+      <p class="subtle" id="homeMsg">Heute warten neue Wörter auf dich.</p>
+      <p class="subtle" id="voiceHint" style="display:none; margin-top:8px; font-size:.78rem;">🔊 Auf diesem Gerät ist keine französische Stimme installiert. Auf dem iPad: Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Französisch laden.</p>
+      <p class="subtle" id="storageWarn" style="display:none; margin-top:8px; font-size:.78rem; color:#A8322B;">⚠️ Der Lernstand lässt sich auf diesem Gerät nicht speichern – bitte in Safari ohne privaten Modus öffnen, sonst ist der Fortschritt nach dem Schliessen weg.</p>
+      <div style="height:12px"></div>
+      <button class="btn big" id="btnStart">Los geht's! 🚀</button>
+      <div style="height:10px"></div>
+      <button class="btn ghost" id="btnList">Alles ansehen &amp; anhören 🔊</button>
+    </div>
+    <p class="footer-note">Jedes Wort wandert vom Paket über den Rucksack in den Koffer. Dort ist es sicher!</p>
+    <div class="center"><button class="backup-link" id="btnBackup">Lernstand sichern</button></div>
+  </section>
+
+  <!-- SESSION -->
+  <section class="screen" id="screen-session">
+    <div class="progressbar" aria-hidden="true"><div class="fill" id="progFill"></div></div>
+    <div class="card prompt-card">
+      <div class="eyebrow" id="taskLabel">Welches Wort ist richtig?</div>
+      <div class="word" id="promptWord"></div>
+      <div id="promptFig" style="margin-top:12px; display:none;"></div>
+    </div>
+    <div class="choices" id="choiceArea"></div>
+    <div class="typebox" id="typeArea" style="display:none">
+      <input type="text" id="typeInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+             placeholder="Hier tippen …" aria-label="Wort eintippen">
+      <button class="btn" id="btnCheck">OK</button>
+    </div>
+    <div class="feedback" id="feedback">
+      <button class="speak-btn" id="btnSpeak" title="Anhören" aria-label="Wort anhören">🔊</button>
+      <div>
+        <div class="answer" id="fbAnswer"></div>
+        <div class="example" id="fbExample"></div>
+      </div>
+    </div>
+    <button class="btn green big" id="btnNext" style="display:none">Weiter ➜</button>
+  </section>
+
+  <!-- FEIER -->
+  <section class="screen" id="screen-done">
+    <div class="card party">
+      <div class="big-ico pop" id="partyIco">🏅</div>
+      <h2 id="partyTitle">Geschafft!</h2>
+      <div class="earned" id="partyStars">+0 ★</div>
+      <p class="subtle" id="partyMsg" style="margin-top:8px"></p>
+      <div style="height:16px"></div>
+      <button class="btn big" id="btnHome">Zurück zum Start</button>
+    </div>
+  </section>
+
+  <!-- WÖRTERLISTE -->
+  <section class="screen" id="screen-list">
+    <div class="card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="font-size:1.1rem;" id="listTitle">Alle Wörter</h2>
+      <button class="btn ghost" id="btnBack" style="padding:8px 14px;">Zurück</button>
+    </div>
+    <div class="wordlist" id="wordList"></div>
+  </section>
+
+  <!-- LERNSTAND SICHERN -->
+  <section class="screen" id="screen-backup">
+    <div class="card" style="padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="font-size:1.1rem;">Lernstand sichern</h2>
+      <button class="btn ghost" id="btnBackupBack" style="padding:8px 14px;">Zurück</button>
+    </div>
+
+    <div class="card">
+      <div class="backup-step">1 · Sichern</div>
+      <textarea class="backup-area" id="exportArea" readonly aria-label="Gesicherter Lernstand"></textarea>
+      <div style="height:8px"></div>
+      <button class="btn" id="btnCopy" style="width:100%">Kopieren 📋</button>
+      <p class="backup-note">Text kopieren und irgendwo sichern – Notizen-App, E-Mail an dich selbst.
+        Damit lässt sich der Fortschritt jederzeit zurückholen.</p>
+      <div class="backup-status" id="copyStatus" role="status"></div>
+    </div>
+
+    <div class="card">
+      <div class="backup-step">2 · Zurückholen</div>
+      <textarea class="backup-area" id="importArea" placeholder="Gesicherten Text hier einfügen …"
+                aria-label="Lernstand einfügen" autocomplete="off" spellcheck="false"></textarea>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="btnImport" style="width:100%">Einsetzen</button>
+      <p class="backup-note">Achtung: Der jetzige Lernstand wird dabei überschrieben.</p>
+      <div class="backup-status" id="importStatus" role="status"></div>
+    </div>
+
+    <p class="ver" id="verLine"></p>
+  </section>
+</div>
+
+<script>
+/* ---------- Fächer & Wörter ---------- */
+const SUBJECTS = {
+  en: {
+    label: "English", lang: "en-GB",
+    typeHint: "Tippe das englische Wort",
+    words: [
+      {id:"accident",  de:"Unfall",                    fw:"accident",            ex:"There was an accident."},
+      {id:"injured",   de:"verletzt",                  fw:"injured",             ex:"The cyclist is injured."},
+      {id:"injury",    de:"Verletzung",                fw:"injury",              ex:"It is a bad injury."},
+      {id:"hurt",      de:"wehtun, schmerzen",         fw:"hurt",                ex:"My leg hurts."},
+      {id:"blood",     de:"Blut",                      fw:"blood",               ex:"There is blood on his arm."},
+      {id:"dangerous", de:"gefährlich",                fw:"dangerous",           ex:"The street is dangerous."},
+      {id:"unconscious",de:"bewusstlos",               fw:"unconscious",         ex:"She is unconscious."},
+      {id:"lying",     de:"auf dem Boden liegend",     fw:"lying on the ground", ex:"He is lying on the ground."},
+      {id:"ambulance", de:"Krankenwagen",              fw:"ambulance",           ex:"Call an ambulance!"},
+      {id:"emcentre",  de:"Notrufzentrale",            fw:"emergency centre",    ex:"The emergency centre helps you."},
+      {id:"phonenum",  de:"Telefonnummer",             fw:"phone number",        ex:"What is your phone number?"},
+      {id:"phonecall", de:"(Telefon-)Anruf",           fw:"phone call",          ex:"I make a phone call."},
+      {id:"emcall",    de:"Notruf",                    fw:"emergency call",      ex:"Make an emergency call!"},
+      {id:"mobile",    de:"Handy, Natel",              fw:"mobile",              ex:"I have my mobile with me."},
+      {id:"safety",    de:"Sicherheit",                fw:"safety",              ex:"Safety first!"},
+      {id:"adult",     de:"Erwachsene / Erwachsener",  fw:"adult",               ex:"Get an adult!"},
+      {id:"help",      de:"helfen; Hilfe",             fw:"help",                ex:"Can you help me?"},
+      {id:"firstaid",  de:"erste Hilfe",               fw:"first aid",           ex:"She gives first aid."},
+      {id:"cyclist",   de:"Velofahrer / Velofahrerin", fw:"cyclist",             ex:"The cyclist fell off his bike."}
+    ]
+  },
+  fr: {
+    label: "Français", lang: "fr-FR",
+    typeHint: "Tippe das französische Wort – mit le oder la",
+    words: [
+      {id:"livre",    de:"das Buch",          fw:"le livre",        ex:"Le livre est sur la table."},
+      {id:"regle",    de:"das Lineal",        fw:"la règle",        ex:"La règle est dans ma trousse."},
+      {id:"classeur", de:"der Ordner",        fw:"le classeur",     ex:"Le classeur est rouge."},
+      {id:"cahier",   de:"das Heft",          fw:"le cahier",       ex:"J'écris dans mon cahier."},
+      {id:"crayon",   de:"der Bleistift",     fw:"le crayon",       ex:"Le crayon est jaune."},
+      {id:"stylo",    de:"der Kugelschreiber",fw:"le stylo",        ex:"J'écris avec un stylo bleu."},
+      {id:"gomme",    de:"der Gummi",         fw:"la gomme",        ex:"Où est ma gomme ?"},
+      {id:"tableau",  de:"die Wandtafel",     fw:"le tableau noir", ex:"Le tableau noir est grand."},
+      {id:"trousse",  de:"das Etui",          fw:"la trousse",      ex:"Ma trousse est verte."},
+      {id:"table",    de:"der Tisch",         fw:"la table",        ex:"La table est grande."},
+      {id:"chaise",   de:"der Stuhl",         fw:"la chaise",       ex:"La chaise est petite."}
+    ]
+  },
+  ma: {
+    label: "Brüche", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
+    typeHint: "Tippe die Antwort – Brüche so: 3/4",
+    words: [
+      {id:"p14", short:"Kuchen: 1 von 4",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:4,k:1},  fw:"1/4",  say:"ein Viertel",   ch:["1/3","3/4","4/4"],
+       ex:"Der Kuchen ist in 4 gleiche Teile geteilt → 4 steht unten (Nenner). 1 Teil ist markiert → 1 steht oben (Zähler)."},
+      {id:"p13", short:"Kuchen: 1 von 3",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:3,k:1},  fw:"1/3",  say:"ein Drittel",   ch:["1/2","2/3","3/3"],
+       ex:"3 gleiche Teile → Nenner 3. Davon 1 markiert → Zähler 1. Also ein Drittel."},
+      {id:"p26", short:"Kuchen: 2 von 6",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:6,k:2},  fw:"2/6",  say:"zwei Sechstel", ch:["2/4","4/6","6/2"],
+       ex:"Zuerst alle Teile zählen: 6 → Nenner 6. Dann die markierten: 2 → Zähler 2. Also zwei Sechstel."},
+      {id:"p35", short:"Kuchen: 3 von 5",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:5,k:3},  fw:"3/5",  say:"drei Fünftel",  ch:["2/5","5/3","3/4"],
+       ex:"5 gleiche Teile → Nenner 5. 3 davon markiert → Zähler 3. Achtung: Die markierten Teile kommen nach oben!"},
+      {id:"p48", short:"Kuchen: 4 von 8",  de:"Welcher Teil ist rot markiert?", fig:{kind:"pie",n:8,k:4},  fw:"4/8",  say:"vier Achtel",   ch:["1/8","8/4","4/6"],
+       ex:"8 Teile → Nenner 8. 4 markiert → Zähler 4. Vier Achtel ist übrigens genau die Hälfte!"},
+      {id:"b12", short:"Balken: 1 von 2",  de:"Welcher Teil ist rot markiert?", fig:{kind:"bar",n:2,k:1},  fw:"1/2",  say:"ein Halbes",    ch:["2/1","1/3","2/2"],
+       ex:"2 gleiche Teile → Nenner 2. 1 markiert → Zähler 1. Das ist die Hälfte: ein Halbes."},
+      {id:"b34", short:"Balken: 3 von 4",  de:"Welcher Teil ist rot markiert?", fig:{kind:"bar",n:4,k:3},  fw:"3/4",  say:"drei Viertel",  ch:["1/4","4/3","3/3"],
+       ex:"4 Teile → Nenner 4. 3 markiert → Zähler 3. Drei Viertel – nur ein Viertel fehlt zum Ganzen."},
+      {id:"b23", short:"Balken: 2 von 3",  de:"Welcher Teil ist rot markiert?", fig:{kind:"bar",n:3,k:2},  fw:"2/3",  say:"zwei Drittel",  ch:["1/3","3/2","2/2"],
+       ex:"3 Teile → Nenner 3. 2 markiert → Zähler 2. Also zwei Drittel."},
+      {id:"b612", short:"Schoggi: 6 von 12", de:"Welcher Teil der Schokolade ist markiert?", fig:{kind:"bar",n:12,k:6}, fw:"6/12", say:"sechs Zwölftel", ch:["6/6","12/6","5/12"],
+       ex:"12 Stückli → Nenner 12. 6 markiert → Zähler 6. Sechs Zwölftel – genau die halbe Tafel."},
+      {id:"b112", short:"Schoggi: 1 von 12", de:"Welcher Teil der Schokolade ist markiert?", fig:{kind:"bar",n:12,k:1}, fw:"1/12", say:"ein Zwölftel", ch:["12/1","1/11","11/12"],
+       ex:"12 Stückli → Nenner 12. Nur 1 markiert → Zähler 1. Ein Zwölftel – ein einziges Stückli."},
+      {id:"w14", short:"«ein Viertel» als Bruch",  de:"Schreibe als Bruch: «ein Viertel»",  fw:"1/4", say:"ein Viertel",  ch:["4/1","1/3","4/4"],
+       ex:"Viertel heisst: in 4 Teile geteilt → 4 unten. «Ein» → 1 oben. Also 1/4."},
+      {id:"w23", short:"«zwei Drittel» als Bruch", de:"Schreibe als Bruch: «zwei Drittel»", fw:"2/3", say:"zwei Drittel", ch:["3/2","2/2","1/3"],
+       ex:"Drittel → in 3 Teile geteilt → 3 unten. «Zwei» → 2 oben. Also 2/3."},
+      {id:"w35", short:"«drei Fünftel» als Bruch", de:"Schreibe als Bruch: «drei Fünftel»", fw:"3/5", say:"drei Fünftel", ch:["5/3","3/3","1/5"],
+       ex:"Fünftel → 5 unten. «Drei» → 3 oben. Also 3/5."},
+      {id:"w16", short:"«ein Sechstel» als Bruch", de:"Schreibe als Bruch: «ein Sechstel»", fw:"1/6", say:"ein Sechstel", ch:["6/1","1/5","6/6"],
+       ex:"Sechstel → 6 unten. «Ein» → 1 oben. Also 1/6."},
+      {id:"t2", short:"2 Kinder teilen 1 Kuchen", de:"2 Kinder teilen 1 Kuchen gerecht. Wie viel bekommt jedes Kind?", fw:"1/2", say:"ein Halbes", ch:["2/1","1/4","2/2"],
+       ex:"1 Kuchen für 2 Kinder: Der Kuchen wird in 2 Teile geschnitten, jedes Kind bekommt 1 davon → 1/2."},
+      {id:"t5", short:"5 Kinder teilen 1 Kuchen", de:"5 Kinder teilen 1 Kuchen gerecht. Wie viel bekommt jedes Kind?", fw:"1/5", say:"ein Fünftel", ch:["5/1","1/4","5/5"],
+       ex:"1 Kuchen für 5 Kinder: 5 Teile schneiden, jedes Kind bekommt 1 → 1/5. Merke: mehr Kinder = kleinere Stücke!"},
+      {id:"t4l", short:"1 Liter auf 4 Becher", de:"1 Liter Sirup wird auf 4 Becher verteilt. Wie viel Liter ist in jedem Becher?", fw:"1/4", say:"ein Viertel Liter", ch:["4/1","1/3","1/2"],
+       ex:"1 Liter : 4 = 1/4 Liter. Teilen durch 4 gibt Viertel – wie beim Kuchen, nur mit Sirup."},
+      {id:"z1", short:"Nenner von 3/5", de:"Was ist der Nenner von 3/5?", fw:"5", say:"fünf", ch:["3","35","8"],
+       ex:"Der Nenner steht unten – merk dir: Nenner = «nieder». Er sagt, in wie viele Teile geteilt wird: hier 5."},
+      {id:"z2", short:"Zähler von 2/7", de:"Was ist der Zähler von 2/7?", fw:"2", say:"zwei", ch:["7","27","9"],
+       ex:"Der Zähler steht oben – er zählt, wie viele Teile man nimmt: hier 2. Unten steht der Nenner (7)."}
+    ]
+  }
+};
+
+/* ---------- Lernstand (Leitner) ---------- */
+/* box 0 = neu, 1 = am üben (fällig nach 1 Tag), 2 = kann ich (3 Tage), 3 = Meister (7 Tage) */
+const WAIT_DAYS = {1:1, 2:3};
+const SESSION_SIZE = 7;
+const STORE_KEY = "woerter-trainer-v2";
+const OLD_KEY = "notfall-englisch-v1";
+
+let state = { subject:"en", stars:0, subjects:{ en:{words:{}}, fr:{words:{}} } };
+let memoryOnly = false;
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+function subj(){ return SUBJECTS[state.subject]; }
+function wordsState(){ return state.subjects[state.subject].words; }
+
+async function loadState(){
+  let raw = null;
+  try{ raw = localStorage.getItem(STORE_KEY); }catch(e){}
+  if(!raw && window.storage){
+    try{ const r = await window.storage.get(STORE_KEY); if(r && r.value) raw = r.value; }catch(e){}
+  }
+  if(raw){
+    try{ state = JSON.parse(raw); }catch(e){}
+  } else {
+    // Lernstand aus der alten Nur-Englisch-Version übernehmen
+    let old = null;
+    try{ old = localStorage.getItem(OLD_KEY); }catch(e){}
+    if(!old && window.storage){
+      try{ const r = await window.storage.get(OLD_KEY); if(r && r.value) old = r.value; }catch(e){}
+    }
+    if(old){
+      try{
+        const o = JSON.parse(old);
+        if(o.words) state.subjects.en.words = o.words;
+        if(o.stars) state.stars = o.stars;
+      }catch(e){}
+    }
+  }
+  if(!state.subjects) state.subjects = {en:{words:{}}, fr:{words:{}}};
+  for(const key of Object.keys(SUBJECTS)){
+    if(!state.subjects[key]) state.subjects[key] = {words:{}};
+    for(const w of SUBJECTS[key].words){
+      if(!state.subjects[key].words[w.id]) state.subjects[key].words[w.id] = {box:0, last:null};
+    }
+  }
+  if(!SUBJECTS[state.subject]) state.subject = "en";
+}
+async function saveState(){
+  if(memoryOnly) return;
+  const raw = JSON.stringify(state);
+  let saved = false;
+  try{ localStorage.setItem(STORE_KEY, raw); saved = true; }catch(e){}
+  if(window.storage){
+    try{ await window.storage.set(STORE_KEY, raw); saved = true; }catch(e){}
+  }
+  if(!saved) memoryOnly = true;
+}
+
+function isDue(ws){
+  if(ws.box === 0) return true;
+  if(ws.box >= 3) return !ws.last || daysBetween(ws.last, today()) >= 7;
+  return !ws.last || daysBetween(ws.last, today()) >= WAIT_DAYS[ws.box];
+}
+
+/* ---------- Aussprache ---------- */
+let VOICES = [];
+function refreshVoices(){
+  try{ VOICES = speechSynthesis.getVoices() || []; }catch(e){ VOICES = []; }
+}
+function pickVoice(langCode){
+  if(!VOICES.length) refreshVoices();
+  const want = langCode.toLowerCase();
+  const prefix = want.slice(0,2);
+  return VOICES.find(v=>(v.lang||"").toLowerCase().replace("_","-")===want)
+      || VOICES.find(v=>(v.lang||"").toLowerCase().startsWith(prefix))
+      || null;
+}
+function speakParts(parts, langCode){
+  try{
+    speechSynthesis.cancel();
+    const voice = pickVoice(langCode);
+    for(const t of parts){
+      if(!t) continue;
+      const u = new SpeechSynthesisUtterance(t);
+      u.rate = 0.85;
+      if(voice){
+        u.voice = voice;
+        u.lang = voice.lang;
+      }
+      /* Keine passende Stimme installiert: lang NICHT setzen,
+         sonst bleibt iOS stumm – Standardstimme spricht dann wenigstens. */
+      speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
+if('speechSynthesis' in window){
+  refreshVoices();
+  speechSynthesis.addEventListener("voiceschanged", ()=>{
+    refreshVoices();
+    if(document.getElementById("screen-home").classList.contains("active")) renderHome();
+  });
+}
+
+/* ---------- Hilfen ---------- */
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function norm(s){ return s.toLowerCase().replace(/\s+/g," ").trim(); }
+function stripArticle(s){ return s.replace(/^(le |la |les |l')/,""); }
+function lev(a,b){
+  const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++){
+      cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    }
+    prev=cur;
+  }
+  return prev[n];
+}
+
+/* ---------- Bruch-Grafiken ---------- */
+function pieSVG(n,k){
+  const cx=50, cy=50, r=45;
+  let paths="";
+  for(let i=0;i<n;i++){
+    const a0=-Math.PI/2 + i*2*Math.PI/n;
+    const a1=-Math.PI/2 + (i+1)*2*Math.PI/n;
+    const x0=(cx+r*Math.cos(a0)).toFixed(2), y0=(cy+r*Math.sin(a0)).toFixed(2);
+    const x1=(cx+r*Math.cos(a1)).toFixed(2), y1=(cy+r*Math.sin(a1)).toFixed(2);
+    const fill = i<k ? "#E4483F" : "#F6EDE3";
+    paths += '<path d="M'+cx+' '+cy+' L'+x0+' '+y0+' A'+r+' '+r+' 0 0 1 '+x1+' '+y1+' Z" fill="'+fill+'" stroke="#1D3049" stroke-width="1.5"/>';
+  }
+  return '<svg viewBox="0 0 100 100" width="140" height="140" role="img" aria-label="Kuchen in '+n+' Teilen, '+k+' markiert">'+paths+'</svg>';
+}
+function barSVG(n,k){
+  const W=240, H=56, bw=W/n;
+  let rects="";
+  for(let i=0;i<n;i++){
+    const fill = i<k ? "#E4483F" : "#F6EDE3";
+    rects += '<rect x="'+(i*bw+1).toFixed(2)+'" y="3" width="'+(bw-2).toFixed(2)+'" height="'+(H-6)+'" rx="4" fill="'+fill+'" stroke="#1D3049" stroke-width="1.5"/>';
+  }
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="240" height="56" role="img" aria-label="Balken in '+n+' Teilen, '+k+' markiert">'+rects+'</svg>';
+}
+function renderFig(item){
+  const el = $("promptFig");
+  if(item.fig){
+    el.innerHTML = item.fig.kind==="pie" ? pieSVG(item.fig.n, item.fig.k) : barSVG(item.fig.n, item.fig.k);
+    el.style.display = "block";
+  } else {
+    el.innerHTML = ""; el.style.display = "none";
+  }
+}
+
+/* ---------- UI-Verweise ---------- */
+const $ = id => document.getElementById(id);
+function show(name){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $("screen-"+name).classList.add("active");
+}
+
+/* ---------- Startscreen ---------- */
+function renderHome(){
+  const TABS = {en:"tabEn", fr:"tabFr", ma:"tabMa"};
+  for(const [key,tid] of Object.entries(TABS)){
+    $(tid).classList.toggle("active", state.subject===key);
+    $(tid).setAttribute("aria-selected", state.subject===key);
+  }
+
+  let c0=0,c1=0,c2=0;
+  for(const w of subj().words){
+    const b = wordsState()[w.id].box;
+    if(b===0) c0++; else if(b===1) c1++; else c2++;
+  }
+  $("cntNew").textContent = c0;
+  $("cntLearn").textContent = c1;
+  $("cntDone").textContent = c2;
+  $("starCount").textContent = state.stars;
+
+  const frMissing = state.subject === "fr" && VOICES.length > 0 && !pickVoice("fr-FR");
+  $("voiceHint").style.display = frMissing ? "block" : "none";
+
+  const due = subj().words.filter(w=>isDue(wordsState()[w.id]));
+  if(due.length === 0){
+    $("homeMsg").textContent = "Alles geübt für heute – super! Komm morgen wieder.";
+    $("btnStart").textContent = "Trotzdem nochmal üben 💪";
+  } else if (c0 === 0 && c1 === 0){
+    $("homeMsg").textContent = "Alle Wörter im Koffer! Heute nur kurz auffrischen.";
+    $("btnStart").textContent = "Auffrischen ⛑️";
+  } else {
+    const unit = subj().unit || "Wörter", one = subj().one || "Wort";
+    $("homeMsg").textContent = (due.length===1 ? "1 "+one+" wartet" : due.length+" "+unit+" warten") + " auf dich – wir üben " + Math.min(SESSION_SIZE, due.length) + " davon.";
+    $("btnStart").textContent = "Los geht's! 🚀";
+  }
+}
+
+function setSubject(key){
+  if(state.subject === key) return;
+  state.subject = key;
+  saveState();
+  renderHome();
+}
+
+/* ---------- Session ---------- */
+let queue = [], current = null, sessionStars = 0, sessionCount = 0, answered = false;
+
+function buildQueue(){
+  const due = subj().words.filter(w=>isDue(wordsState()[w.id]));
+  const reviews = shuffle(due.filter(w=>wordsState()[w.id].box>0));
+  const fresh   = shuffle(due.filter(w=>wordsState()[w.id].box===0));
+  let pick = reviews.concat(fresh).slice(0, SESSION_SIZE);
+  if(pick.length===0) pick = shuffle(subj().words).slice(0, SESSION_SIZE);
+  queue = pick;
+  sessionStars = 0; sessionCount = queue.length;
+}
+
+function nextCard(){
+  answered = false;
+  $("feedback").className = "feedback";
+  $("btnNext").style.display = "none";
+  if(queue.length === 0){ finishSession(); return; }
+  current = queue.shift();
+  const done = sessionCount - queue.length - 1;
+  $("progFill").style.width = (done/sessionCount*100) + "%";
+  $("promptWord").textContent = current.de;
+  $("promptWord").style.fontSize = current.ch ? "1.25rem" : "";
+  renderFig(current);
+
+  const box = wordsState()[current.id].box;
+  if(box === 0){
+    $("taskLabel").textContent = current.ch ? "Welche Antwort ist richtig?" : "Welches Wort ist richtig?";
+    $("typeArea").style.display = "none";
+    const others = current.ch
+      ? shuffle(current.ch).slice(0,3)
+      : shuffle(subj().words.filter(w=>w.id!==current.id)).slice(0,3).map(w=>w.fw);
+    const opts = shuffle([current.fw, ...others]);
+    const area = $("choiceArea"); area.innerHTML = "";
+    for(const o of opts){
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = o;
+      b.addEventListener("click", ()=>answerChoice(b, o));
+      area.appendChild(b);
+    }
+    area.style.display = "grid";
+  } else {
+    $("taskLabel").textContent = subj().typeHint;
+    $("choiceArea").style.display = "none";
+    $("typeArea").style.display = "flex";
+    $("typeInput").value = "";
+    setTimeout(()=>$("typeInput").focus(), 50);
+  }
+}
+
+function answerChoice(btn, chosen){
+  if(answered) return; answered = true;
+  document.querySelectorAll(".choice").forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === current.fw) b.classList.add("correct");
+  });
+  const ok = chosen === current.fw;
+  if(!ok) btn.classList.add("wrong");
+  applyResult(ok ? "ok" : "no");
+}
+
+function answerTyped(){
+  if(answered) return;
+  const raw = norm($("typeInput").value);
+  if(!raw) return;
+  answered = true;
+  const target = norm(current.fw);
+  let result = "no";
+  if(current.ch){
+    // Mathe: exakt vergleichen (Leerzeichen egal), keine Toleranz – 1/3 ist nicht «fast» 1/4
+    result = raw.replace(/\s/g,"") === target.replace(/\s/g,"") ? "ok" : "no";
+  } else {
+    const dist = lev(raw, target);
+    const tol = target.length > 10 ? 2 : 1;
+    if(dist === 0){
+      result = "ok";
+    } else if(state.subject === "fr" && stripArticle(raw) === stripArticle(target)){
+      result = "almost"; // Wort richtig, Artikel fehlt oder falsch
+    } else if(dist <= tol){
+      result = "almost";
+    }
+  }
+  applyResult(result);
+}
+
+function applyResult(result){
+  const ws = wordsState()[current.id];
+  const fb = $("feedback");
+  $("fbExample").textContent = current.ex;
+  if(result === "ok"){
+    fb.classList.add("show","ok");
+    $("fbAnswer").textContent = "✓ " + current.fw;
+    ws.box = Math.min(ws.box + 1, 3);
+    sessionStars++;
+  } else if(result === "almost"){
+    fb.classList.add("show","almost");
+    $("fbAnswer").textContent = "Fast! Richtig heisst es: " + current.fw;
+  } else {
+    fb.classList.add("show","no");
+    $("fbAnswer").textContent = "Richtig wäre: " + current.fw;
+    ws.box = Math.max(ws.box - 1, 0);
+    queue.push(current); sessionCount++;
+  }
+  ws.last = today();
+  saveState();
+  speakParts([current.say || current.fw], subj().lang);
+  $("btnNext").style.display = "block";
+  $("btnNext").focus();
+}
+
+function finishSession(){
+  $("progFill").style.width = "100%";
+  state.stars += sessionStars;
+  saveState();
+  $("partyStars").textContent = "+" + sessionStars + " ★";
+  const allDone = subj().words.every(w=>wordsState()[w.id].box >= 2);
+  if(allDone){
+    $("partyIco").textContent = "🏆";
+    $("partyTitle").textContent = "Alle Wörter im Koffer!";
+    $("partyMsg").textContent = "Stark! Komm in ein paar Tagen zum Auffrischen vorbei – oder übe die andere Sprache.";
+  } else {
+    $("partyIco").textContent = ["🏅","🎉","💪","🌟"][Math.floor(Math.random()*4)];
+    $("partyTitle").textContent = "Runde geschafft!";
+    $("partyMsg").textContent = "Kleine Portionen jeden Tag – genau so lernt dein Kopf am besten. Bis morgen!";
+  }
+  show("done");
+}
+
+/* ---------- Wörterliste ---------- */
+function renderList(){
+  $("listTitle").textContent = "Alle " + subj().words.length + " " + (subj().unit || "Wörter") + " – " + subj().label;
+  const list = $("wordList"); list.innerHTML = "";
+  for(const w of subj().words){
+    const box = wordsState()[w.id].box;
+    const row = document.createElement("div");
+    row.className = "wordrow";
+    const dot = document.createElement("span");
+    dot.className = "dot " + (box===0?"k1":box===1?"k2":"k3");
+    dot.title = box===0 ? "neu" : box===1 ? "am Üben" : "kann ich";
+    const de = document.createElement("span"); de.className="de"; de.textContent = w.short || w.de;
+    const fw = document.createElement("span"); fw.className="fw"; fw.textContent = w.fw;
+    const sp = document.createElement("button");
+    sp.className = "speak-btn"; sp.textContent = "🔊";
+    sp.setAttribute("aria-label", (w.say || w.fw) + " anhören");
+    sp.addEventListener("click", ()=>speakParts([w.say || w.fw], subj().lang));
+    row.append(dot, de, fw, sp);
+    list.appendChild(row);
+  }
+}
+
+/* ---------- Events ---------- */
+$("tabEn").addEventListener("click", ()=>setSubject("en"));
+$("tabFr").addEventListener("click", ()=>setSubject("fr"));
+$("tabMa").addEventListener("click", ()=>setSubject("ma"));
+$("btnStart").addEventListener("click", ()=>{ buildQueue(); show("session"); nextCard(); });
+$("btnNext").addEventListener("click", nextCard);
+$("btnCheck").addEventListener("click", answerTyped);
+$("typeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") answerTyped(); });
+$("btnSpeak").addEventListener("click", ()=>{ if(current) speakParts([current.fw], subj().lang); });
+$("btnHome").addEventListener("click", ()=>{ renderHome(); show("home"); });
+$("btnList").addEventListener("click", ()=>{ renderList(); show("list"); });
+$("btnBack").addEventListener("click", ()=>{ renderHome(); show("home"); });
+
+/* ---------- Lernstand sichern & zurueckholen ---------- */
+/* Wird beim Deployen hochgezaehlt – dient auch als Kontrolle, ob das iPad
+   wirklich die neue Fassung geladen hat. */
+const APP_VERSION = "1.0.0";
+const BUILD_DATE  = "2026-08-21";
+
+function buildBackup(){
+  return JSON.stringify({app:"woerter-trainer", v:2, saved:today(), state:state});
+}
+
+/* Fehlende Faecher/Woerter ergaenzen – noetig nach einem Import aus einer
+   aelteren Fassung, in der es ein Fach noch nicht gab. */
+function normalizeState(){
+  if(!state.subjects) state.subjects = {};
+  for(const key of Object.keys(SUBJECTS)){
+    if(!state.subjects[key]) state.subjects[key] = {words:{}};
+    if(!state.subjects[key].words) state.subjects[key].words = {};
+    for(const w of SUBJECTS[key].words){
+      const ws = state.subjects[key].words[w.id];
+      if(!ws || typeof ws.box !== "number") state.subjects[key].words[w.id] = {box:0, last:null};
+    }
+  }
+  if(typeof state.stars !== "number" || !isFinite(state.stars)) state.stars = 0;
+  if(!SUBJECTS[state.subject]) state.subject = "en";
+}
+
+function openBackup(){
+  $("exportArea").value = buildBackup();
+  $("importArea").value = "";
+  for(const id of ["copyStatus","importStatus"]){
+    $(id).textContent = ""; $(id).className = "backup-status";
+  }
+  $("verLine").textContent = "Version " + APP_VERSION + " · " + BUILD_DATE;
+  show("backup");
+}
+
+async function copyBackup(){
+  const t = $("exportArea").value;
+  let ok = false;
+  try{ await navigator.clipboard.writeText(t); ok = true; }catch(e){}
+  if(!ok){
+    /* Aeltere iOS-Fassungen ohne Clipboard-API */
+    try{
+      $("exportArea").focus();
+      $("exportArea").setSelectionRange(0, t.length);
+      ok = document.execCommand("copy");
+    }catch(e){}
+  }
+  const st = $("copyStatus");
+  st.className = "backup-status " + (ok ? "ok" : "err");
+  st.textContent = ok ? "✓ Kopiert" : "Kopieren ging nicht – Text von Hand markieren.";
+}
+
+async function applyBackup(){
+  const st = $("importStatus");
+  const fail = m => { st.className = "backup-status err"; st.textContent = m; };
+  const raw = $("importArea").value.trim();
+  if(!raw) return fail("Kein Text eingefügt.");
+  let parsed;
+  try{ parsed = JSON.parse(raw); }catch(e){ return fail("Das ist kein gültiger Lernstand."); }
+  const cand = (parsed && parsed.state) ? parsed.state : parsed;
+  if(!cand || typeof cand !== "object" || !cand.subjects) return fail("Das ist kein gültiger Lernstand.");
+  state = cand;
+  normalizeState();
+  await saveState();
+  renderHome();
+  st.className = "backup-status ok";
+  st.textContent = "✓ Zurückgeholt – " + state.stars + " ★";
+  $("exportArea").value = buildBackup();
+}
+
+$("btnBackup").addEventListener("click", openBackup);
+$("btnBackupBack").addEventListener("click", ()=>{ renderHome(); show("home"); });
+$("btnCopy").addEventListener("click", copyBackup);
+$("btnImport").addEventListener("click", applyBackup);
+
+/* ---------- Offline-Betrieb ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+
+/* ---------- Start ---------- */
+(async function init(){
+  await loadState();
+  normalizeState();
+  await saveState();
+  if(memoryOnly) $("storageWarn").style.display = "block";
+  renderHome();
+})();
+</script>
+</body>
+</html>

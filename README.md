@@ -49,7 +49,10 @@ Besonderheiten:
   als SVG gezeichnet wird (`boardSVG()`). Bei den Zugregeln zeigen gelb markierte
   Felder das Bewegungsmuster – das Diagramm erklärt, die Frage prüft nur nach.
 - **Aussprache:** Web Speech API. Vorgelesen wird nur das Wort, nicht der
-  Beispielsatz. Bei Mathe wird die Wortform gesprochen („zwei Sechstel").
+  Beispielsatz. Bei Brüchen wird die Wortform gesprochen („zwei Sechstel").
+  **Schach ist stumm** (`mute: true`): dort ist die Aussprache nicht der
+  Lernstoff, ein vorgelesenes „e4" bringt nichts. In stummen Fächern
+  verschwinden auch die 🔊-Knöpfe in Runde und Übersicht.
 
 ## Auf dem iPad einrichten
 
@@ -100,6 +103,15 @@ Ein Eintrag pro Wort:
   - `{kind:"board", pieces:"Td4 ke8", marks:"e4 f5"}` – Schachbrett
 - `exact` – `true` erzwingt exakten Vergleich ohne Tippfehler-Toleranz.
   Pro Fach setzbar (`exact: true` bei Brüche), pro Aufgabe übersteuerbar.
+
+Merkmale, die für ein ganzes Fach gelten, stehen neben `label` und `lang`:
+
+- `unit` / `one` – Mehrzahl und Einzahl der Einträge („Aufgaben" / „Aufgabe").
+  Steuert auch die Koffer-Beschriftung auf dem Startbildschirm.
+- `exact: true` – exakter Vergleich für alle Aufgaben des Fachs
+- `mute: true` – keine Sprachausgabe. `say` bleibt in den Einträgen stehen,
+  wird aber nicht verwendet; ein Entfernen von `mute` genügt, um Ton zu bekommen.
+- `icon` – Symbol für den Reiter und die Fach-Anzeige in der Runde
 
 ### Schachdiagramme
 

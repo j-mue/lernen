@@ -373,7 +373,7 @@ const SUBJECTS = {
     ]
   },
   sc: {
-    label: "Schach", icon: "♟️", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe",
+    label: "Schach", icon: "♟️", lang: "de-DE", unit: "Aufgaben", one: "Aufgabe", mute: true,
     typeHint: "Tippe die Antwort",
     words: [
       /* --- Figuren erkennen --- */
@@ -729,6 +729,7 @@ function renderHome(){
     const b = wordsState()[w.id].box;
     if(b===0) c0++; else if(b===1) c1++; else c2++;
   }
+  $("btnList").textContent = subj().mute ? "Alle Aufgaben ansehen 👀" : "Alles ansehen & anhören 🔊";
   $("cntNew").textContent = c0;
   $("lblNew").textContent = "Neue " + (subj().unit || "Wörter");
   $("cntLearn").textContent = c1;
@@ -784,6 +785,8 @@ function nextCard(){
   $("promptWord").textContent = current.de;
   $("promptWord").style.fontSize = current.ch ? "1.25rem" : "";
   renderFig(current);
+
+  $("btnSpeak").style.display = subj().mute ? "none" : "";
 
   const box = wordsState()[current.id].box;
   if(box === 0){
@@ -869,7 +872,10 @@ function applyResult(result){
   }
   ws.last = today();
   saveState();
-  speakParts([current.say || current.fw], subj().lang);
+  /* Bei Englisch und Französisch ist die Aussprache der eigentliche Lernstoff,
+     bei Brüchen die Wortform («zwei Sechstel»). Bei Schach bringt ein
+     vorgelesenes «e4» nichts – das Fach ist deshalb auf stumm gestellt. */
+  if(!subj().mute) speakParts([current.say || current.fw], subj().lang);
   $("btnNext").style.display = "block";
   $("btnNext").focus();
 }
@@ -905,11 +911,14 @@ function renderList(){
     dot.title = box===0 ? "neu" : box===1 ? "am Üben" : "kann ich";
     const de = document.createElement("span"); de.className="de"; de.textContent = w.short || w.de;
     const fw = document.createElement("span"); fw.className="fw"; fw.textContent = w.fw;
-    const sp = document.createElement("button");
-    sp.className = "speak-btn"; sp.textContent = "🔊";
-    sp.setAttribute("aria-label", (w.say || w.fw) + " anhören");
-    sp.addEventListener("click", ()=>speakParts([w.say || w.fw], subj().lang));
-    row.append(dot, de, fw, sp);
+    row.append(dot, de, fw);
+    if(!subj().mute){
+      const sp = document.createElement("button");
+      sp.className = "speak-btn"; sp.textContent = "🔊";
+      sp.setAttribute("aria-label", (w.say || w.fw) + " anhören");
+      sp.addEventListener("click", ()=>speakParts([w.say || w.fw], subj().lang));
+      row.append(sp);
+    }
     list.appendChild(row);
   }
 }
@@ -923,7 +932,7 @@ $("btnStart").addEventListener("click", ()=>{ buildQueue(); show("session"); nex
 $("btnNext").addEventListener("click", nextCard);
 $("btnCheck").addEventListener("click", answerTyped);
 $("typeInput").addEventListener("keydown", e=>{ if(e.key==="Enter") answerTyped(); });
-$("btnSpeak").addEventListener("click", ()=>{ if(current) speakParts([current.fw], subj().lang); });
+$("btnSpeak").addEventListener("click", ()=>{ if(current && !subj().mute) speakParts([current.fw], subj().lang); });
 $("btnHome").addEventListener("click", ()=>{ renderHome(); show("home"); });
 $("btnList").addEventListener("click", ()=>{ renderList(); show("list"); });
 $("btnBack").addEventListener("click", ()=>{ renderHome(); show("home"); });
@@ -949,7 +958,7 @@ $("btnQuit").addEventListener("click", quitSession);
 /* ---------- Lernstand sichern & zurueckholen ---------- */
 /* Wird beim Deployen hochgezaehlt – dient auch als Kontrolle, ob das iPad
    wirklich die neue Fassung geladen hat. */
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 const BUILD_DATE  = "2026-08-21";
 
 function buildBackup(){
